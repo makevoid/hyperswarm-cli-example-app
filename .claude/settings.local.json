@@ -6,7 +6,9 @@
       "Bash(timeout 5 npm run server)",
       "Bash(timeout 15 npm test)",
       "Bash(npm run clean:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(npm install:*)",
+      "Bash(timeout 30 npm run test:e2e:*)"
     ],
     "deny": [],
     "ask": []
