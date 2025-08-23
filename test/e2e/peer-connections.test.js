@@ -2,7 +2,7 @@ import test from 'brittle'
 import { spawn } from 'child_process'
 import crypto from 'hypercore-crypto'
 import b4a from 'b4a'
-import { setTimeout } from 'timers/promises'
+import { delay } from 'es-toolkit'
 
 class TestProcess {
   constructor(args, timeout = 10000) {
@@ -41,7 +41,7 @@ class TestProcess {
       })
 
       // Wait a bit for the process to start
-      setTimeout(1000).then(() => {
+      delay(1000).then(() => {
         if (this.isRunning) {
           resolve(this)
         } else {
@@ -54,7 +54,7 @@ class TestProcess {
   async stop() {
     if (this.process && this.isRunning) {
       this.process.kill('SIGTERM')
-      await setTimeout(1000)
+      await delay(1000)
       if (this.isRunning) {
         this.process.kill('SIGKILL')
       }
@@ -84,7 +84,7 @@ test('E2E - single peer startup and shutdown', async function (t) {
     await peer.start()
     t.ok(peer.isRunning, 'peer should start successfully')
     
-    await setTimeout(2000)
+    await delay(2000)
     
     t.ok(peer.hasOutput('Starting Hyperswarm CLI in peer mode'), 'should log startup message')
     t.ok(peer.hasOutput('Successfully joined swarm'), 'should join swarm successfully')
@@ -108,13 +108,13 @@ test('E2E - server and client connection', async function (t) {
     await server.start()
     t.ok(server.isRunning, 'server should start successfully')
     
-    await setTimeout(2000)
+    await delay(2000)
     
     // Start client
     await client.start()
     t.ok(client.isRunning, 'client should start successfully')
     
-    await setTimeout(3000)
+    await delay(3000)
     
     // Check server received connection
     t.ok(server.hasOutput('New connection from peer'), 'server should receive connection')
@@ -144,17 +144,17 @@ test('E2E - three peer mesh network', async function (t) {
     await peer1.start()
     t.ok(peer1.isRunning, 'peer-1 should start successfully')
     
-    await setTimeout(2000)
+    await delay(2000)
     
     await peer2.start()
     t.ok(peer2.isRunning, 'peer-2 should start successfully')
     
-    await setTimeout(2000)
+    await delay(2000)
     
     await peer3.start()
     t.ok(peer3.isRunning, 'peer-3 should start successfully')
     
-    await setTimeout(4000)
+    await delay(4000)
     
     // Check connections were established
     t.ok(peer1.hasOutput('New connection from peer'), 'peer-1 should have connections')
@@ -178,7 +178,7 @@ test('E2E - error handling for invalid topic', async function (t) {
     await peer.start()
     t.ok(peer.isRunning, 'peer should start even with invalid topic')
     
-    await setTimeout(3000)
+    await delay(3000)
     
     // Should still attempt to join swarm (hyperswarm handles invalid topics gracefully)
     t.ok(peer.hasOutput('Joining swarm'), 'should attempt to join swarm')
@@ -198,12 +198,12 @@ test('E2E - graceful shutdown on SIGTERM', async function (t) {
     await peer.start()
     t.ok(peer.isRunning, 'peer should start successfully')
     
-    await setTimeout(2000)
+    await delay(2000)
     
     // Send SIGTERM
     peer.process.kill('SIGTERM')
     
-    await setTimeout(2000)
+    await delay(2000)
     
     t.absent(peer.isRunning, 'peer should stop after SIGTERM')
     t.ok(peer.hasOutput('Shutting down'), 'should log shutdown message')

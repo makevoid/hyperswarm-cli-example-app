@@ -5,6 +5,7 @@ import crypto from "hypercore-crypto";
 import b4a from "b4a";
 import minimist from "minimist";
 import process from "process";
+import { delay } from "es-toolkit";
 import Logger from "./logger.js";
 
 class HyperswarmCLI {
@@ -18,7 +19,7 @@ class HyperswarmCLI {
     this.swarm = new Hyperswarm();
     this.connections = new Map();
     this.messageHistory = [];
-    this.intervals = new Set(); // Track intervals for cleanup
+    this.abortControllers = new Set(); // Track AbortControllers for cleanup
 
     this.setupEventHandlers();
     this.setupGracefulShutdown();
@@ -344,23 +345,39 @@ class HyperswarmCLI {
     // Start looking for peers
     this.logger.info("🔍 Looking for peers on the network...");
 
-    // Set up a periodic check for peer discovery
-    const peerCheckInterval = setInterval(() => {
-      if (this.connections.size === 0) {
-        this.logger.debug(`Still looking for peers... (${this.swarm.peers.size} peers in DHT)`);
-      } else {
-        this.clearInterval({ intervalId: peerCheckInterval });
-      }
-    }, 5000);
-    this.intervals.add(peerCheckInterval);
-
-    // Clear interval after 30 seconds to avoid spam
-    const cleanupTimeout = setTimeout(() => this.clearInterval({ intervalId: peerCheckInterval }), 30000);
-    this.intervals.add(cleanupTimeout);
+    // Set up a periodic check for peer discovery using delay
+    this.startPeerDiscoveryCheck();
 
     if (process.stdin.isTTY) {
       this.logger.info("💡 Type /help for available commands, or just type a message to broadcast");
       process.stdout.write("> ");
+    }
+  }
+
+  async startPeerDiscoveryCheck() {
+    const controller = new AbortController();
+    this.abortControllers.add(controller);
+    
+    try {
+      // Check every 5 seconds for up to 30 seconds
+      for (let i = 0; i < 6; i++) {
+        await delay(5000, { signal: controller.signal });
+        
+        if (this.connections.size === 0) {
+          this.logger.debug(`Still looking for peers... (${this.swarm.peers.size} peers in DHT)`);
+        } else {
+          // Found peers, stop checking
+          break;
+        }
+      }
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        this.logger.debug('Peer discovery check was cancelled');
+      } else {
+        this.logger.error('Error in peer discovery check:', { error: error.message });
+      }
+    } finally {
+      this.abortControllers.delete(controller);
     }
   }
 
@@ -377,21 +394,14 @@ class HyperswarmCLI {
     });
   }
 
-  clearInterval({ intervalId }) {
-    if (this.intervals.has(intervalId)) {
-      clearInterval(intervalId);
-      this.intervals.delete(intervalId);
-    }
-  }
-
   async shutdown() {
     this.logger.info("🔄 Shutting down...");
 
-    // Clear all intervals
-    for (const intervalId of this.intervals) {
-      clearInterval(intervalId);
+    // Abort all ongoing delay operations
+    for (const controller of this.abortControllers) {
+      controller.abort();
     }
-    this.intervals.clear();
+    this.abortControllers.clear();
 
     // Close all connections
     for (const [peerId, conn] of this.connections) {
