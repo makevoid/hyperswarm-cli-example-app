@@ -32,6 +32,33 @@ class HyperswarmCLI {
       this.logger.debug(`Swarm updated. Connected to ${this.swarm.connections.size} peers`)
     })
 
+    // Add more detailed swarm event logging
+    this.swarm.on('peer-add', (peer) => {
+      this.logger.peer(`Peer added to swarm: ${b4a.toString(peer.publicKey, 'hex').substring(0, 8)}`, {
+        address: `${peer.host}:${peer.port}`,
+        topics: peer.topics ? peer.topics.length : 0
+      })
+    })
+
+    this.swarm.on('peer-remove', (peer) => {
+      this.logger.peer(`Peer removed from swarm: ${b4a.toString(peer.publicKey, 'hex').substring(0, 8)}`)
+    })
+
+    this.swarm.on('connect', (socket, info) => {
+      this.logger.connection(`Swarm connecting to peer`, { 
+        host: info.host, 
+        port: info.port,
+        client: info.client 
+      })
+    })
+
+    this.swarm.on('disconnect', (socket, info) => {
+      this.logger.connection(`Swarm disconnecting from peer`, { 
+        host: info.host, 
+        port: info.port 
+      })
+    })
+
     // Handle stdin for interactive messaging
     if (process.stdin.isTTY) {
       process.stdin.setEncoding('utf8')
@@ -164,6 +191,9 @@ class HyperswarmCLI {
       case '/status':
         this.showStatus()
         break
+      case '/topic':
+        this.showTopic()
+        break
       case '/quit':
       case '/exit':
         this.shutdown()
@@ -204,6 +234,7 @@ class HyperswarmCLI {
     console.log('  /broadcast <message> - Broadcast message to all peers')
     console.log('  /history   - Show message history')
     console.log('  /status    - Show connection status')
+    console.log('  /topic     - Show current topic for sharing')
     console.log('  /quit      - Quit the application')
     console.log('  <message>  - Send message to all peers')
     this.logger.separator()
@@ -246,6 +277,22 @@ class HyperswarmCLI {
     this.logger.separator()
   }
 
+  showTopic() {
+    this.logger.separator()
+    if (this.topic) {
+      const topicHex = b4a.toString(this.topic, 'hex')
+      this.logger.info('Current Topic (copy this to connect other peers):')
+      console.log(`  ${topicHex}`)
+      console.log('')
+      console.log(`To connect peers, use:`)
+      console.log(`  node index.js --topic ${topicHex}`)
+      console.log(`  npm run peer -- --topic ${topicHex}`)
+    } else {
+      this.logger.warn('No topic set')
+    }
+    this.logger.separator()
+  }
+
   async start() {
     this.logger.success(`🚀 Starting Hyperswarm CLI in ${this.mode} mode`)
     this.logger.info(`Peer name: ${this.name}`)
@@ -257,8 +304,13 @@ class HyperswarmCLI {
       this.logger.info(`Using provided topic: ${this.topic}`)
     } else {
       topicBuffer = crypto.randomBytes(32)
-      this.logger.info(`Generated topic: ${b4a.toString(topicBuffer, 'hex')}`)
+      const topicHex = b4a.toString(topicBuffer, 'hex')
+      this.logger.info(`Generated topic: ${topicHex}`)
+      this.logger.warn(`⚠️  To connect other peers, use: --topic ${topicHex}`)
     }
+
+    // Store the topic for status display
+    this.topic = topicBuffer
 
     // Join the swarm
     const discovery = this.swarm.join(topicBuffer, {
@@ -266,11 +318,34 @@ class HyperswarmCLI {
       server: this.mode !== 'client'
     })
 
-    this.logger.info('Joining swarm...')
+    this.logger.info('Joining swarm...', {
+      mode: this.mode,
+      client: this.mode !== 'server',
+      server: this.mode !== 'client',
+      topicHash: b4a.toString(topicBuffer, 'hex').substring(0, 16) + '...'
+    })
     
     // Wait for the topic to be announced
     await discovery.flushed()
     this.logger.success('✅ Successfully joined swarm and announced topic')
+    
+    // Log additional swarm info
+    this.logger.debug(`Swarm info: ${this.swarm.connections.size} connections, ${this.swarm.peers.size} peers`)
+    
+    // Start looking for peers
+    this.logger.info('🔍 Looking for peers on the network...')
+    
+    // Set up a periodic check for peer discovery
+    const peerCheckInterval = setInterval(() => {
+      if (this.connections.size === 0) {
+        this.logger.debug(`Still looking for peers... (${this.swarm.peers.size} peers in DHT)`)
+      } else {
+        clearInterval(peerCheckInterval)
+      }
+    }, 5000)
+
+    // Clear interval after 30 seconds to avoid spam
+    setTimeout(() => clearInterval(peerCheckInterval), 30000)
 
     if (process.stdin.isTTY) {
       this.logger.info('💡 Type /help for available commands, or just type a message to broadcast')
