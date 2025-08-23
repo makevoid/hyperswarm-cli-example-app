@@ -1,0 +1,39 @@
+{
+  "name": "hyperswarm-cli-hello",
+  "version": "1.0.0",
+  "description": "Advanced Hyperswarm CLI application with peer discovery, messaging, and comprehensive logging",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --inspect index.js",
+    "peer": "node index.js peer",
+    "server": "node index.js server",
+    "client": "node index.js client",
+    "demo": "npm run demo:setup && npm run demo:run",
+    "demo:setup": "echo 'Setting up demo environment...'",
+    "demo:run": "concurrently \"npm run server\" \"sleep 2 && npm run peer\" \"sleep 4 && npm run client\"",
+    "test": "node test.js",
+    "logs": "tail -f *.log",
+    "clean": "rm -f *.log && echo 'Logs cleaned'"
+  },
+  "keywords": [
+    "hyperswarm",
+    "p2p",
+    "cli",
+    "networking",
+    "distributed"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "hyperswarm": "^4.7.15",
+    "hypercore-crypto": "^3.4.0",
+    "b4a": "^1.6.4",
+    "minimist": "^1.2.8",
+    "chalk": "^5.3.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
