@@ -15,7 +15,7 @@ class TestProcess {
   }
 
   async start() {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       this.process = spawn('node', ['index.js', ...this.args], {
         stdio: ['pipe', 'pipe', 'pipe'],
         env: { ...process.env, NODE_ENV: 'test' }
@@ -41,13 +41,16 @@ class TestProcess {
       })
 
       // Wait a bit for the process to start
-      delay(1000).then(() => {
+      try {
+        await delay(1000)
         if (this.isRunning) {
           resolve(this)
         } else {
           reject(new Error(`Process failed to start: ${this.errorOutput}`))
         }
-      })
+      } catch (error) {
+        reject(error)
+      }
     })
   }
 
@@ -121,11 +124,10 @@ test('E2E - server and client connection', async function (t) {
     t.ok(server.hasOutput('Welcome message from test-client'), 'server should receive welcome message')
     
     // Check client connected
-    t.ok(client.hasOutput('got connection'), 'client should establish connection')
+    t.ok(client.hasOutput('New connection from peer'), 'client should establish connection')
     
   } finally {
-    await client.stop()
-    await server.stop()
+    await Promise.all([client.stop(), server.stop()])
   }
 })
 
@@ -159,12 +161,10 @@ test('E2E - three peer mesh network', async function (t) {
     // Check connections were established
     t.ok(peer1.hasOutput('New connection from peer'), 'peer-1 should have connections')
     t.ok(peer2.hasOutput('New connection from peer'), 'peer-2 should have connections')
-    t.ok(peer3.hasOutput('got connection'), 'peer-3 should have connections')
+    t.ok(peer3.hasOutput('New connection from peer'), 'peer-3 should have connections')
     
   } finally {
-    await peer3.stop()
-    await peer2.stop()
-    await peer1.stop()
+    await Promise.all([peer1.stop(), peer2.stop(), peer3.stop()])
   }
 })
 
@@ -219,37 +219,32 @@ test('E2E - help and version commands', async function (t) {
   t.plan(4)
   t.timeout(10000)
 
-  // Test help command
-  const helpProcess = spawn('node', ['index.js', '--help'], {
-    stdio: ['pipe', 'pipe', 'pipe']
-  })
-  
-  let helpOutput = ''
-  helpProcess.stdout.on('data', (data) => {
-    helpOutput += data.toString()
-  })
-  
-  await new Promise((resolve) => {
-    helpProcess.on('close', resolve)
-  })
+  // Helper function to run command and capture output
+  const runCommand = (args) => {
+    return new Promise((resolve) => {
+      const process = spawn('node', ['index.js', ...args], {
+        stdio: ['pipe', 'pipe', 'pipe']
+      })
+      
+      let output = ''
+      process.stdout.on('data', (data) => {
+        output += data.toString()
+      })
+      
+      process.on('close', () => {
+        resolve(output)
+      })
+    })
+  }
+
+  // Run both commands in parallel
+  const [helpOutput, versionOutput] = await Promise.all([
+    runCommand(['--help']),
+    runCommand(['--version'])
+  ])
   
   t.ok(helpOutput.includes('Hyperswarm CLI'), 'help should show application name')
   t.ok(helpOutput.includes('Usage:'), 'help should show usage information')
-  
-  // Test version command
-  const versionProcess = spawn('node', ['index.js', '--version'], {
-    stdio: ['pipe', 'pipe', 'pipe']
-  })
-  
-  let versionOutput = ''
-  versionProcess.stdout.on('data', (data) => {
-    versionOutput += data.toString()
-  })
-  
-  await new Promise((resolve) => {
-    versionProcess.on('close', resolve)
-  })
-  
   t.ok(versionOutput.includes('Hyperswarm CLI'), 'version should show application name')
   t.ok(versionOutput.includes('v1.0.0'), 'version should show version number')
 })

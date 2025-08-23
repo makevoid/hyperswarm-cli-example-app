@@ -186,7 +186,9 @@ node demo.js  # Automated Alice/Bob demo
 - **Dependencies**: Minimal runtime deps (hyperswarm, minimist, chalk, etc.)
 - **Error Handling**: Comprehensive error catching with graceful degradation
 - **Cross-platform**: Works on macOS, Linux, Windows with Node.js 18+
-- **Memory Management**: Proper cleanup of intervals, event handlers, connections
+- **Memory Management**: Proper cleanup using AbortSignal, event handlers, connections
+- **Modern JavaScript**: Uses `es-toolkit/delay` instead of `setTimeout` for better async control
+- **Parallel Processing**: Optimized test cleanup and command execution using `Promise.all`
 
 ## 🤝 Contributing Guidelines
 
