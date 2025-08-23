@@ -25,24 +25,24 @@ class HyperswarmCLI {
     this.abortControllers = new Set(); // Track AbortControllers for cleanup
 
     // Initialize components
-    this.messageHandler = new MessageHandler({ 
-      logger: this.logger, 
+    this.messageHandler = new MessageHandler({
+      logger: this.logger,
       name: this.name,
-      sendToPeer: this.sendToPeer.bind(this)
+      sendToPeer: this.sendToPeer.bind(this),
     });
-    
-    this.connectionManager = new ConnectionManager({ 
-      logger: this.logger, 
+
+    this.connectionManager = new ConnectionManager({
+      logger: this.logger,
       messageHandler: this.messageHandler,
-      messageHistory: this.messageHistory
+      messageHistory: this.messageHistory,
     });
 
-    this.eventHandler = new EventHandler({ 
-      logger: this.logger 
+    this.eventHandler = new EventHandler({
+      logger: this.logger,
     });
 
-    this.uiDisplay = new UIDisplay({ 
-      logger: this.logger 
+    this.uiDisplay = new UIDisplay({
+      logger: this.logger,
     });
 
     this.setupEventHandlers();
@@ -50,17 +50,15 @@ class HyperswarmCLI {
   }
 
   setupEventHandlers() {
-    this.eventHandler.setupSwarmEventHandlers({ 
-      swarm: this.swarm, 
-      connectionManager: this.connectionManager 
+    this.eventHandler.setupSwarmEventHandlers({
+      swarm: this.swarm,
+      connectionManager: this.connectionManager,
     });
-    
-    this.eventHandler.setupStdinEventHandlers({ 
-      userInputHandler: this.handleUserInput.bind(this) 
+
+    this.eventHandler.setupStdinEventHandlers({
+      userInputHandler: this.handleUserInput.bind(this),
     });
   }
-
-
 
   sendToPeer({ peerId, message }) {
     this.connectionManager.sendToPeer({ peerId, message });
@@ -92,12 +90,12 @@ class HyperswarmCLI {
         this.uiDisplay.showMessageHistory({ messageHistory: this.messageHistory });
         break;
       case "/status":
-        this.uiDisplay.showStatus({ 
-          mode: this.mode, 
-          name: this.name, 
-          topic: this.topic, 
-          connectionManager: this.connectionManager, 
-          messageHistory: this.messageHistory 
+        this.uiDisplay.showStatus({
+          mode: this.mode,
+          name: this.name,
+          topic: this.topic,
+          connectionManager: this.connectionManager,
+          messageHistory: this.messageHistory,
         });
         break;
       case "/topic":
@@ -128,11 +126,6 @@ class HyperswarmCLI {
   handleConnection({ connection, info }) {
     this.connectionManager.handleConnection({ connection, info });
   }
-
-
-
-
-
 
   async start() {
     this.logger.success(`🚀 Starting Hyperswarm CLI in ${this.mode} mode`);
@@ -190,12 +183,12 @@ class HyperswarmCLI {
   async startPeerDiscoveryCheck() {
     const controller = new AbortController();
     this.abortControllers.add(controller);
-    
+
     try {
       // Check every 5 seconds for up to 30 seconds
       for (let i = 0; i < 6; i++) {
         await delay(5000, { signal: controller.signal });
-        
+
         if (this.connectionManager.getConnectionsSize() === 0) {
           this.logger.debug(`Still looking for peers... (${this.swarm.peers.size} peers in DHT)`);
         } else {
@@ -204,10 +197,10 @@ class HyperswarmCLI {
         }
       }
     } catch (error) {
-      if (error.name === 'AbortError') {
-        this.logger.debug('Peer discovery check was cancelled');
+      if (error.name === "AbortError") {
+        this.logger.debug("Peer discovery check was cancelled");
       } else {
-        this.logger.error('Error in peer discovery check:', { error: error.message });
+        this.logger.error("Error in peer discovery check:", { error: error.message });
       }
     } finally {
       this.abortControllers.delete(controller);
