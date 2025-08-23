@@ -5,7 +5,14 @@ import chalk from "chalk";
 class Logger {
   constructor({ name = "app" } = {}) {
     this.name = name;
-    this.logFile = `${name}.log`;
+    
+    // Ensure log directory exists
+    const logDir = "./log";
+    if (!fs.existsSync(logDir)) {
+      fs.mkdirSync(logDir, { recursive: true });
+    }
+    
+    this.logFile = path.join(logDir, `${name}.log`);
     this.colors = {
       info: chalk.blue,
       success: chalk.green,

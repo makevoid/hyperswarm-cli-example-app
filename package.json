@@ -19,8 +19,8 @@
     "test:unit": "brittle test/unit/*.js",
     "test:integration": "brittle test/integration/*.js",
     "test:e2e": "brittle test/e2e/*.js",
-    "logs": "tail -f *.log",
-    "clean": "rm -f *.log coverage/ && echo 'Logs and coverage cleaned'"
+    "logs": "tail -f log/*.log",
+    "clean": "rm -rf log/*.log coverage/ && echo 'Logs and coverage cleaned'"
   },
   "keywords": [
     "hyperswarm",

@@ -13,7 +13,7 @@ test('Logger - constructor and initialization', async function (t) {
   const logger = new Logger({ name: 'test-logger' })
   
   t.is(logger.name, 'test-logger', 'should set logger name correctly')
-  t.is(logger.logFile, 'test-logger.log', 'should set log file name correctly')
+  t.is(logger.logFile, 'log/test-logger.log', 'should set log file name correctly')
   t.ok(typeof logger.colors === 'object', 'should initialize colors object')
   t.ok(Object.keys(logger.colors).length > 0, 'should have color definitions')
 })
@@ -24,7 +24,7 @@ test('Logger - default name generation', async function (t) {
   const logger = new Logger()
   
   t.is(logger.name, 'app', 'should use default name "app"')
-  t.is(logger.logFile, 'app.log', 'should use default log file name')
+  t.is(logger.logFile, 'log/app.log', 'should use default log file name')
 })
 
 test('Logger - message formatting', async function (t) {
