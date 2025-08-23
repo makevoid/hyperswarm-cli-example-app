@@ -147,8 +147,10 @@ node index.js --version
 ### **CLI Architecture** (`index.js`)
 - **HyperswarmCLI class**: Main application logic with proper OOP design
 - **Keyword arguments**: All methods use `{ param1, param2 }` syntax for clarity
-- **Resource management**: Automatic tracking and cleanup of intervals/timeouts
-- **Modular design**: Separate concerns for networking, UI, and logging  
+- **Resource management**: Automatic tracking and cleanup using AbortSignal
+- **Modular design**: Event handlers extracted into focused, single-responsibility methods
+- **Message handling**: Separate handler methods for each message type (welcome, chat, broadcast, ping, pong)
+- **Connection lifecycle**: Dedicated methods for connection setup, event handling, and cleanup
 - **Graceful shutdown**: Proper cleanup of connections and resources
 
 ## 🛠️ Development Workflow

@@ -26,42 +26,37 @@ class HyperswarmCLI {
   }
 
   setupEventHandlers() {
+    this.setupSwarmEventHandlers();
+    this.setupStdinEventHandlers();
+  }
+
+  setupSwarmEventHandlers() {
     this.swarm.on("connection", (conn, info) => {
       this.handleConnection({ connection: conn, info });
     });
 
     this.swarm.on("update", () => {
-      this.logger.debug(`Swarm updated. Connected to ${this.swarm.connections.size} peers`);
+      this.onSwarmUpdate();
     });
 
-    // Add more detailed swarm event logging
     this.swarm.on("peer-add", (peer) => {
-      this.logger.peer(`Peer added to swarm: ${b4a.toString(peer.publicKey, "hex").substring(0, 8)}`, {
-        address: `${peer.host}:${peer.port}`,
-        topics: peer.topics ? peer.topics.length : 0,
-      });
+      this.onPeerAdd({ peer });
     });
 
     this.swarm.on("peer-remove", (peer) => {
-      this.logger.peer(`Peer removed from swarm: ${b4a.toString(peer.publicKey, "hex").substring(0, 8)}`);
+      this.onPeerRemove({ peer });
     });
 
     this.swarm.on("connect", (socket, info) => {
-      this.logger.connection(`Swarm connecting to peer`, {
-        host: info.host,
-        port: info.port,
-        client: info.client,
-      });
+      this.onSwarmConnect({ socket, info });
     });
 
     this.swarm.on("disconnect", (socket, info) => {
-      this.logger.connection(`Swarm disconnecting from peer`, {
-        host: info.host,
-        port: info.port,
-      });
+      this.onSwarmDisconnect({ socket, info });
     });
+  }
 
-    // Handle stdin for interactive messaging
+  setupStdinEventHandlers() {
     if (process.stdin.isTTY) {
       process.stdin.setEncoding("utf8");
       process.stdin.on("data", (data) => {
@@ -70,35 +65,82 @@ class HyperswarmCLI {
     }
   }
 
-  handleConnection({ connection, info }) {
-    const peerId = b4a.toString(connection.remotePublicKey, "hex").substring(0, 8);
-    this.connections.set(peerId, connection);
+  onSwarmUpdate() {
+    this.logger.debug(`Swarm updated. Connected to ${this.swarm.connections.size} peers`);
+  }
 
+  onPeerAdd({ peer }) {
+    this.logger.peer(`Peer added to swarm: ${b4a.toString(peer.publicKey, "hex").substring(0, 8)}`, {
+      address: `${peer.host}:${peer.port}`,
+      topics: peer.topics ? peer.topics.length : 0,
+    });
+  }
+
+  onPeerRemove({ peer }) {
+    this.logger.peer(`Peer removed from swarm: ${b4a.toString(peer.publicKey, "hex").substring(0, 8)}`);
+  }
+
+  onSwarmConnect({ socket, info }) {
+    this.logger.connection(`Swarm connecting to peer`, {
+      host: info.host,
+      port: info.port,
+      client: info.client,
+    });
+  }
+
+  onSwarmDisconnect({ socket, info }) {
+    this.logger.connection(`Swarm disconnecting from peer`, {
+      host: info.host,
+      port: info.port,
+    });
+  }
+
+  handleConnection({ connection, info }) {
+    const peerId = this.generatePeerId({ connection });
+    this.registerConnection({ peerId, connection, info });
+    this.setupConnectionEventHandlers({ peerId, connection });
+    this.sendWelcomeMessage({ peerId });
+  }
+
+  generatePeerId({ connection }) {
+    return b4a.toString(connection.remotePublicKey, "hex").substring(0, 8);
+  }
+
+  registerConnection({ peerId, connection, info }) {
+    this.connections.set(peerId, connection);
     this.logger.connection(`New connection from peer ${peerId}`, {
       remoteAddress: connection.remoteAddress,
       type: info.client ? "client" : "server",
       totalConnections: this.connections.size,
     });
+  }
 
-    // Handle incoming messages
+  setupConnectionEventHandlers({ peerId, connection }) {
     connection.on("data", (data) => {
       this.handleIncomingMessage({ peerId, data });
     });
 
-    // Handle connection close
     connection.on("close", () => {
-      this.connections.delete(peerId);
-      this.logger.connection(`Peer ${peerId} disconnected`, {
-        totalConnections: this.connections.size,
-      });
+      this.onConnectionClose({ peerId });
     });
 
-    // Handle connection errors
     connection.on("error", (err) => {
-      this.logger.error(`Connection error with peer ${peerId}:`, { error: err.message });
+      this.onConnectionError({ peerId, error: err });
     });
+  }
 
-    // Send welcome message
+  onConnectionClose({ peerId }) {
+    this.connections.delete(peerId);
+    this.logger.connection(`Peer ${peerId} disconnected`, {
+      totalConnections: this.connections.size,
+    });
+  }
+
+  onConnectionError({ peerId, error }) {
+    this.logger.error(`Connection error with peer ${peerId}:`, { error: error.message });
+  }
+
+  sendWelcomeMessage({ peerId }) {
     this.sendToPeer({ 
       peerId, 
       message: {
@@ -112,41 +154,76 @@ class HyperswarmCLI {
 
   handleIncomingMessage({ peerId, data }) {
     try {
-      const message = JSON.parse(data.toString());
-      this.messageHistory.push({ ...message, peerId, received: Date.now() });
-
-      this.logger.peer(`Message from ${peerId}:`, message);
-
-      // Handle different message types
-      switch (message.type) {
-        case "welcome":
-          this.logger.success(`Welcome message from ${message.from}`);
-          break;
-        case "chat":
-          this.logger.info(`💬 ${message.from}: ${message.message}`);
-          break;
-        case "broadcast":
-          this.logger.info(`📢 Broadcast from ${message.from}: ${message.message}`);
-          break;
-        case "ping":
-          this.sendToPeer({ 
-            peerId, 
-            message: {
-              type: "pong",
-              from: this.name,
-              originalTimestamp: message.timestamp,
-              timestamp: Date.now(),
-            }
-          });
-          break;
-        case "pong":
-          const latency = Date.now() - message.originalTimestamp;
-          this.logger.success(`🏓 Pong from ${message.from} (${latency}ms latency)`);
-          break;
-      }
+      const message = this.parseMessage({ data });
+      this.recordMessage({ message, peerId });
+      this.logIncomingMessage({ peerId, message });
+      this.processMessageByType({ peerId, message });
     } catch (err) {
       this.logger.error("Failed to parse incoming message:", { error: err.message });
     }
+  }
+
+  parseMessage({ data }) {
+    return JSON.parse(data.toString());
+  }
+
+  recordMessage({ message, peerId }) {
+    this.messageHistory.push({ ...message, peerId, received: Date.now() });
+  }
+
+  logIncomingMessage({ peerId, message }) {
+    this.logger.peer(`Message from ${peerId}:`, message);
+  }
+
+  processMessageByType({ peerId, message }) {
+    switch (message.type) {
+      case "welcome":
+        this.handleWelcomeMessage({ message });
+        break;
+      case "chat":
+        this.handleChatMessage({ message });
+        break;
+      case "broadcast":
+        this.handleBroadcastMessage({ message });
+        break;
+      case "ping":
+        this.handlePingMessage({ peerId, message });
+        break;
+      case "pong":
+        this.handlePongMessage({ message });
+        break;
+      default:
+        this.logger.warn(`Unknown message type: ${message.type}`, message);
+    }
+  }
+
+  handleWelcomeMessage({ message }) {
+    this.logger.success(`Welcome message from ${message.from}`);
+  }
+
+  handleChatMessage({ message }) {
+    this.logger.info(`💬 ${message.from}: ${message.message}`);
+  }
+
+  handleBroadcastMessage({ message }) {
+    this.logger.info(`📢 Broadcast from ${message.from}: ${message.message}`);
+  }
+
+  handlePingMessage({ peerId, message }) {
+    this.sendToPeer({ 
+      peerId, 
+      message: {
+        type: "pong",
+        from: this.name,
+        originalTimestamp: message.timestamp,
+        timestamp: Date.now(),
+      }
+    });
+  }
+
+  handlePongMessage({ message }) {
+    const latency = Date.now() - message.originalTimestamp;
+    this.logger.success(`🏓 Pong from ${message.from} (${latency}ms latency)`);
   }
 
   sendToPeer({ peerId, message }) {
