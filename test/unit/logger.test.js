@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename)
 test('Logger - constructor and initialization', async function (t) {
   t.plan(4)
   
-  const logger = new Logger('test-logger')
+  const logger = new Logger({ name: 'test-logger' })
   
   t.is(logger.name, 'test-logger', 'should set logger name correctly')
   t.is(logger.logFile, 'test-logger.log', 'should set log file name correctly')
@@ -30,8 +30,8 @@ test('Logger - default name generation', async function (t) {
 test('Logger - message formatting', async function (t) {
   t.plan(3)
   
-  const logger = new Logger('test')
-  const message = logger._formatMessage('info', 'test message', { data: 'value' })
+  const logger = new Logger({ name: 'test' })
+  const message = logger._formatMessage({ level: 'info', message: 'test message', data: { data: 'value' } })
   
   t.ok(message.includes('[TEST]'), 'should include uppercase logger name')
   t.ok(message.includes('[INFO]'), 'should include uppercase log level')
@@ -42,10 +42,10 @@ test('Logger - file writing', async function (t) {
   const tmpDir = await t.tmp()
   const testLogFile = path.join(tmpDir, 'test-write.log')
   
-  const logger = new Logger('test-write')
+  const logger = new Logger({ name: 'test-write' })
   logger.logFile = testLogFile
   
-  logger._writeToFile('test log message')
+  logger._writeToFile({ message: 'test log message' })
   
   const content = fs.readFileSync(testLogFile, 'utf8')
   t.ok(content.includes('test log message'), 'should write message to file')
@@ -61,7 +61,7 @@ test('Logger - log levels', async function (t) {
   const tmpDir = await t.tmp()
   const testLogFile = path.join(tmpDir, 'test-levels.log')
   
-  const logger = new Logger('test-levels')
+  const logger = new Logger({ name: 'test-levels' })
   logger.logFile = testLogFile
   
   // Capture console output
@@ -99,7 +99,7 @@ test('Logger - data object logging', async function (t) {
   const tmpDir = await t.tmp()
   const testLogFile = path.join(tmpDir, 'test-data.log')
   
-  const logger = new Logger('test-data')
+  const logger = new Logger({ name: 'test-data' })
   logger.logFile = testLogFile
   
   let consoleOutput = ''
@@ -121,7 +121,7 @@ test('Logger - data object logging', async function (t) {
 test('Logger - separator method', async function (t) {
   t.plan(1)
   
-  const logger = new Logger('test-sep')
+  const logger = new Logger({ name: 'test-sep' })
   
   let consoleOutput = ''
   const originalLog = console.log
@@ -137,14 +137,14 @@ test('Logger - separator method', async function (t) {
 test('Logger - file write error handling', async function (t) {
   t.plan(1)
   
-  const logger = new Logger('test-error')
+  const logger = new Logger({ name: 'test-error' })
   logger.logFile = '/invalid/path/test.log' // Invalid path
   
   let errorOutput = ''
   const originalError = console.error
   console.error = (msg) => { errorOutput += msg + '\n' }
   
-  logger._writeToFile('test message')
+  logger._writeToFile({ message: 'test message' })
   
   console.error = originalError
   

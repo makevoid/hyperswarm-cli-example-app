@@ -58,7 +58,7 @@ test('HyperswarmCLI - message handling', async function (t) {
   })
   
   const originalLength = cli.messageHistory.length
-  cli.handleIncomingMessage(mockPeerId, Buffer.from(JSON.stringify(welcomeMessage)))
+  cli.handleIncomingMessage({ peerId: mockPeerId, data: Buffer.from(JSON.stringify(welcomeMessage)) })
   
   t.is(cli.messageHistory.length, originalLength + 1, 'should add message to history')
   t.is(cli.messageHistory[cli.messageHistory.length - 1].type, 'welcome', 'should store message type')
@@ -134,7 +134,7 @@ test('HyperswarmCLI - ping functionality', async function (t) {
 })
 
 test('HyperswarmCLI - user input handling', async function (t) {
-  t.plan(6)
+  t.plan(7)
   
   const cli = new HyperswarmCLI({ name: 'test-input' })
   
@@ -143,6 +143,7 @@ test('HyperswarmCLI - user input handling', async function (t) {
   let statusShown = false
   let peersShown = false
   let helpShown = false
+  let topicShown = false
   
   // Override methods to track calls
   cli.broadcast = () => { broadcastCalled = true }
@@ -150,24 +151,27 @@ test('HyperswarmCLI - user input handling', async function (t) {
   cli.showStatus = () => { statusShown = true }
   cli.showPeers = () => { peersShown = true }
   cli.showHelp = () => { helpShown = true }
+  cli.showTopic = () => { topicShown = true }
   
-  cli.handleUserInput('/ping')
-  cli.handleUserInput('/status')
-  cli.handleUserInput('/peers')
-  cli.handleUserInput('/help')
-  cli.handleUserInput('/broadcast test message')
-  cli.handleUserInput('') // Should do nothing
+  cli.handleUserInput({ input: '/ping' })
+  cli.handleUserInput({ input: '/status' })
+  cli.handleUserInput({ input: '/peers' })
+  cli.handleUserInput({ input: '/help' })
+  cli.handleUserInput({ input: '/topic' })
+  cli.handleUserInput({ input: '/broadcast test message' })
+  cli.handleUserInput({ input: '' }) // Should do nothing
   
   t.ok(pingCalled, 'should handle ping command')
   t.ok(statusShown, 'should handle status command')
   t.ok(peersShown, 'should handle peers command')
   t.ok(helpShown, 'should handle help command')
+  t.ok(topicShown, 'should handle topic command')
   t.ok(broadcastCalled, 'should handle broadcast command')
   
   // Test regular message
   broadcastCalled = false
   cli.connections.set('test', { write: () => {} })
-  cli.handleUserInput('regular message')
+  cli.handleUserInput({ input: 'regular message' })
   t.ok(broadcastCalled, 'should broadcast regular messages when peers connected')
   
   t.teardown(async () => {
@@ -190,13 +194,40 @@ test('HyperswarmCLI - connection management', async function (t) {
   
   const mockInfo = { client: true }
   
-  cli.handleConnection(mockConn, mockInfo)
+  cli.handleConnection({ connection: mockConn, info: mockInfo })
   
   t.is(cli.connections.size, 1, 'should add connection to connections map')
   
   const peerId = b4a.toString(mockConn.remotePublicKey, 'hex').substring(0, 8)
   t.ok(cli.connections.has(peerId), 'should use correct peer ID as key')
   t.is(cli.connections.get(peerId), mockConn, 'should store connection object')
+  
+  t.teardown(async () => {
+    await cli.shutdown()
+  })
+})
+
+test('HyperswarmCLI - showTopic method', async function (t) {
+  t.plan(2)
+  
+  const cli = new HyperswarmCLI({ name: 'test-topic' })
+  
+  // Mock console.log to capture output
+  let logOutput = ''
+  const originalLog = console.log
+  console.log = (msg) => { logOutput += msg + '\n' }
+  
+  // Test with no topic set
+  cli.showTopic()
+  t.ok(logOutput === '', 'should not log when no topic is set')
+  
+  // Test with topic set
+  cli.topic = b4a.from('deadbeefcafebabe1234567890abcdef1234567890abcdef1234567890abcdef', 'hex')
+  logOutput = ''
+  cli.showTopic()
+  t.ok(logOutput.includes('deadbeefcafebabe1234567890abcdef'), 'should display topic when set')
+  
+  console.log = originalLog
   
   t.teardown(async () => {
     await cli.shutdown()
