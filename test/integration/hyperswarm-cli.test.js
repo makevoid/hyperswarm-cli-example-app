@@ -4,7 +4,7 @@ import b4a from 'b4a'
 import HyperswarmCLI from '../../index.js'
 
 test('HyperswarmCLI - constructor initialization', async function (t) {
-  t.plan(6)
+  t.plan(7)
   
   const cli = new HyperswarmCLI({
     mode: 'server',
@@ -17,7 +17,8 @@ test('HyperswarmCLI - constructor initialization', async function (t) {
   t.is(cli.topic, 'deadbeef', 'should set topic correctly')
   t.ok(cli.logger, 'should initialize logger')
   t.ok(cli.swarm, 'should initialize swarm')
-  t.ok(cli.connections instanceof Map, 'should initialize connections Map')
+  t.ok(cli.connectionManager, 'should initialize connection manager')
+  t.ok(cli.connectionManager.getConnections() instanceof Map, 'should initialize connections Map')
   
   t.teardown(async () => {
     await cli.shutdown()
@@ -53,7 +54,7 @@ test('HyperswarmCLI - message handling', async function (t) {
   }
   
   // Mock connection
-  cli.connections.set(mockPeerId, {
+  cli.connectionManager.connections.set(mockPeerId, {
     write: () => {} // Mock write method
   })
   
@@ -91,8 +92,8 @@ test('HyperswarmCLI - broadcast functionality', async function (t) {
     }
   }
   
-  cli.connections.set('peer1', mockConn1)
-  cli.connections.set('peer2', mockConn2)
+  cli.connectionManager.connections.set('peer1', mockConn1)
+  cli.connectionManager.connections.set('peer2', mockConn2)
   
   cli.broadcast('Test broadcast message')
   
@@ -121,7 +122,7 @@ test('HyperswarmCLI - ping functionality', async function (t) {
     }
   }
   
-  cli.connections.set('peer1', mockConn)
+  cli.connectionManager.connections.set('peer1', mockConn)
   
   cli.pingAllPeers()
   
@@ -170,7 +171,7 @@ test('HyperswarmCLI - user input handling', async function (t) {
   
   // Test regular message
   broadcastCalled = false
-  cli.connections.set('test', { write: () => {} })
+  cli.connectionManager.connections.set('test', { write: () => {} })
   cli.handleUserInput({ input: 'regular message' })
   t.ok(broadcastCalled, 'should broadcast regular messages when peers connected')
   
@@ -196,11 +197,12 @@ test('HyperswarmCLI - connection management', async function (t) {
   
   cli.handleConnection({ connection: mockConn, info: mockInfo })
   
-  t.is(cli.connections.size, 1, 'should add connection to connections map')
+  t.is(cli.connectionManager.getConnectionsSize(), 1, 'should add connection to connections map')
   
   const peerId = b4a.toString(mockConn.remotePublicKey, 'hex').substring(0, 8)
-  t.ok(cli.connections.has(peerId), 'should use correct peer ID as key')
-  t.is(cli.connections.get(peerId), mockConn, 'should store connection object')
+  const connections = cli.connectionManager.getConnections()
+  t.ok(connections.has(peerId), 'should use correct peer ID as key')
+  t.is(connections.get(peerId), mockConn, 'should store connection object')
   
   t.teardown(async () => {
     await cli.shutdown()

@@ -16,9 +16,14 @@ This is a **comprehensive Node.js CLI application** demonstrating advanced peer-
 ```
 hyperswarm-cli-hello/
 ├── 📁 Core Application
-│   ├── index.js              # Main HyperswarmCLI class and application logic
+│   ├── index.js              # Main HyperswarmCLI class and CLI entry point
 │   ├── logger.js             # Comprehensive logging system with file output
-│   └── demo.js               # Interactive demo script (Alice & Bob)
+│   ├── demo.js               # Interactive demo script (Alice & Bob)
+│   └── lib/                  # Modular OOP components
+│       ├── EventHandler.js       # Swarm and connection event handling
+│       ├── MessageHandler.js     # Message processing and type handlers
+│       ├── ConnectionManager.js  # Connection lifecycle management
+│       └── UIDisplay.js          # User interface and display functions
 │
 ├── 📁 Tests (Brittle Framework)
 │   ├── test/unit/            # Fast, isolated component tests
@@ -144,14 +149,16 @@ node index.js --version
 - **Message types**: welcome, chat, broadcast, ping/pong with validation
 - **Connection lifecycle**: Full tracking from discovery to disconnection
 
-### **CLI Architecture** (`index.js`)
-- **HyperswarmCLI class**: Main application logic with proper OOP design
+### **Modular Architecture**
+- **HyperswarmCLI class** (`index.js`): Main orchestrator with dependency injection
+- **EventHandler** (`lib/EventHandler.js`): Manages all swarm and connection events
+- **MessageHandler** (`lib/MessageHandler.js`): Processes different message types (welcome, chat, broadcast, ping, pong)
+- **ConnectionManager** (`lib/ConnectionManager.js`): Handles connection lifecycle, peer management, and broadcasting
+- **UIDisplay** (`lib/UIDisplay.js`): All user interface commands and display functions
 - **Keyword arguments**: All methods use `{ param1, param2 }` syntax for clarity
 - **Resource management**: Automatic tracking and cleanup using AbortSignal
-- **Modular design**: Event handlers extracted into focused, single-responsibility methods
-- **Message handling**: Separate handler methods for each message type (welcome, chat, broadcast, ping, pong)
-- **Connection lifecycle**: Dedicated methods for connection setup, event handling, and cleanup
-- **Graceful shutdown**: Proper cleanup of connections and resources
+- **Single Responsibility**: Each class has a focused, well-defined purpose
+- **Dependency Injection**: Components are injected for testability and modularity
 
 ## 🛠️ Development Workflow
 
