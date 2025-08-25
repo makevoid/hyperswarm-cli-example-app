@@ -45,7 +45,7 @@ npm run demo
 ### Command Line Options
 
 ```bash
-node index.js [options]
+node main.js [options]
 
 Options:
   -m, --mode <mode>     Operation mode: peer, server, client (default: peer)
@@ -81,19 +81,19 @@ npm run server
 
 Terminal 2 (Client):
 ```bash
-node index.js --mode client --topic <TOPIC_FROM_SERVER>
+node main.js --mode client --topic <TOPIC_FROM_SERVER>
 ```
 
 #### Example 2: Named Peers with Custom Topic
 
 Terminal 1:
 ```bash
-node index.js --name "Alice" --topic "deadbeefcafebabe1234567890abcdef1234567890abcdef1234567890abcdef"
+node main.js --name "Alice" --topic "deadbeefcafebabe1234567890abcdef1234567890abcdef1234567890abcdef"
 ```
 
 Terminal 2:
 ```bash
-node index.js --name "Bob" --topic "deadbeefcafebabe1234567890abcdef1234567890abcdef1234567890abcdef"
+node main.js --name "Bob" --topic "deadbeefcafebabe1234567890abcdef1234567890abcdef1234567890abcdef"
 ```
 
 #### Example 3: Interactive Session
@@ -206,10 +206,10 @@ This runs a comprehensive test that:
 
 ```bash
 # Enable debug mode
-DEBUG=hyperswarm* node index.js
+DEBUG=hyperswarm* node main.js
 
 # Custom storage location
-HYPERSWARM_STORAGE=/custom/path node index.js
+HYPERSWARM_STORAGE=/custom/path node main.js
 ```
 
 ### Customization
@@ -225,7 +225,7 @@ The application is designed to be easily extensible:
 
 ```
 hyperswarm-cli-hello/
-├── index.js          # Main application
+├── main.js           # Main application
 ├── logger.js         # Logging system
 ├── test.js           # Test suite
 ├── package.json      # Dependencies and scripts

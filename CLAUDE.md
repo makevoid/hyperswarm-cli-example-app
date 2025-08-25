@@ -16,7 +16,7 @@ This is a **comprehensive Node.js CLI application** demonstrating advanced peer-
 ```
 hyperswarm-cli-hello/
 ├── 📁 Core Application
-│   ├── index.js              # Main HyperswarmCLI class and CLI entry point
+│   ├── main.js               # Main HyperswarmCLI class and CLI entry point
 │   ├── logger.js             # Comprehensive logging system with file output
 │   ├── demo.js               # Interactive demo script (Alice & Bob)
 │   └── lib/                  # Modular OOP components
@@ -98,17 +98,17 @@ npm run clean              # Clean log files and coverage reports
 ```bash
 # Start interactive peer (generates random topic)  
 npm run peer
-# or: node index.js --name alice
+# or: node main.js --name alice
 
 # Start server mode
 npm run server  
 
 # Connect to specific topic
-node index.js --name bob --topic <TOPIC_FROM_FIRST_PEER>
+node main.js --name bob --topic <TOPIC_FROM_FIRST_PEER>
 
 # Show help and version
-node index.js --help
-node index.js --version
+node main.js --help
+node main.js --version
 ```
 
 ### **Interactive Commands** (once running)
@@ -125,11 +125,11 @@ node index.js --version
 ```
 
 ### **Connection Process**
-1. **Alice starts**: `node index.js --name alice`  
+1. **Alice starts**: `node main.js --name alice`  
    - App generates random topic and shows sharing command
    - Logs: `⚠️ To connect other peers, use: --topic <GENERATED_TOPIC>`
 
-2. **Bob connects**: `node index.js --name bob --topic <ALICE_TOPIC>`
+2. **Bob connects**: `node main.js --name bob --topic <ALICE_TOPIC>`
    - Both peers discover each other via DHT
    - Automatic connection establishment and welcome exchange
 
@@ -150,7 +150,7 @@ node index.js --version
 - **Connection lifecycle**: Full tracking from discovery to disconnection
 
 ### **Modular Architecture**
-- **HyperswarmCLI class** (`index.js`): Main orchestrator with dependency injection
+- **HyperswarmCLI class** (`main.js`): Main orchestrator with dependency injection
 - **EventHandler** (`lib/EventHandler.js`): Manages all swarm and connection events
 - **MessageHandler** (`lib/MessageHandler.js`): Processes different message types (welcome, chat, broadcast, ping, pong)
 - **ConnectionManager** (`lib/ConnectionManager.js`): Handles connection lifecycle, peer management, and broadcasting

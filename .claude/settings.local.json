@@ -12,7 +12,8 @@
       "Bash(npm test)",
       "Bash(timeout:*)",
       "Bash(brittle --trace test/integration/hyperswarm-cli.test.js)",
-      "Bash(npx brittle:*)"
+      "Bash(npx brittle:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

@@ -16,7 +16,7 @@ console.log("=".repeat(80));
 
 // Start Alice
 console.log("👩 Starting Alice...");
-const alice = spawn("node", ["index.js", "--name", "alice", "--topic", topic], {
+const alice = spawn("node", ["main.js", "--name", "alice", "--topic", topic], {
   stdio: ["inherit", "pipe", "pipe"],
 });
 
@@ -36,7 +36,7 @@ alice.stderr.on("data", (data) => {
 await setTimeout(2000);
 
 console.log("\n👨 Starting Bob...");
-const bob = spawn("node", ["index.js", "--name", "bob", "--topic", topic], {
+const bob = spawn("node", ["main.js", "--name", "bob", "--topic", topic], {
   stdio: ["inherit", "pipe", "pipe"],
 });
 

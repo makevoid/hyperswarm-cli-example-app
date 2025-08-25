@@ -1,7 +1,7 @@
 import test from 'brittle'
 import crypto from 'hypercore-crypto'
 import b4a from 'b4a'
-import HyperswarmCLI from '../../index.js'
+import HyperswarmCLI from '../../main.js'
 
 test('HyperswarmCLI - constructor initialization', async function (t) {
   t.plan(7)

@@ -16,7 +16,7 @@ class TestProcess {
 
   async start() {
     return new Promise(async (resolve, reject) => {
-      this.process = spawn('node', ['index.js', ...this.args], {
+      this.process = spawn('node', ['main.js', ...this.args], {
         stdio: ['pipe', 'pipe', 'pipe'],
         env: { ...process.env, NODE_ENV: 'test' }
       })
@@ -222,7 +222,7 @@ test('E2E - help and version commands', async function (t) {
   // Helper function to run command and capture output
   const runCommand = (args) => {
     return new Promise((resolve) => {
-      const process = spawn('node', ['index.js', ...args], {
+      const process = spawn('node', ['main.js', ...args], {
         stdio: ['pipe', 'pipe', 'pipe']
       })
       
