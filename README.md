@@ -1,6 +1,6 @@
 # 🌐 Hyperswarm CLI - Advanced P2P Networking Tool
 
-A comprehensive Node.js CLI application demonstrating advanced Hyperswarm features including peer discovery, real-time messaging, and distributed networking capabilities.
+A comprehensive Node.js CLI application demonstrating Hyperswarm features implementing a real-time chat application.
 
 ## ✨ Features
 
