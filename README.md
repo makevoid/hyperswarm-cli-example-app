@@ -20,7 +20,7 @@ A comprehensive Node.js CLI application demonstrating Hyperswarm features implem
 ```bash
 # Clone and install
 git clone <your-repo>
-cd hyperswarm-cli-hello
+cd hyperswarm-cli-example-app
 npm install
 ```
 
