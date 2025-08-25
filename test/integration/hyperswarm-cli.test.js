@@ -235,3 +235,38 @@ test('HyperswarmCLI - showTopic method', async function (t) {
     await cli.shutdown()
   })
 })
+
+test('HyperswarmCLI - EventHandler stdin integration', async function (t) {
+  t.plan(4)
+  
+  const cli = new HyperswarmCLI({ name: 'test-stdin' })
+  
+  let helpCalled = false
+  let broadcastCalled = false
+  let pingCalled = false
+  
+  // Override methods to track calls
+  cli.uiDisplay.showHelp = () => { helpCalled = true }
+  cli.broadcast = () => { broadcastCalled = true }
+  cli.pingAllPeers = () => { pingCalled = true }
+  
+  // Add a mock connection for broadcast test
+  cli.connectionManager.connections.set('test-peer', { write: () => {} })
+  
+  // Test that EventHandler emits userInput events and CLI handles them
+  cli.eventHandler.emit('userInput', { input: '/help' })
+  cli.eventHandler.emit('userInput', { input: '/ping' })
+  cli.eventHandler.emit('userInput', { input: 'hello world' })
+  cli.eventHandler.emit('userInput', { input: '' }) // Should do nothing
+  
+  t.ok(helpCalled, 'should handle /help command via EventEmitter')
+  t.ok(pingCalled, 'should handle /ping command via EventEmitter')
+  t.ok(broadcastCalled, 'should handle regular messages via EventEmitter')
+  
+  // Test that the event listener is properly set up
+  t.ok(cli.eventHandler.listenerCount('userInput') > 0, 'should have userInput event listener registered')
+  
+  t.teardown(async () => {
+    await cli.shutdown()
+  })
+})
