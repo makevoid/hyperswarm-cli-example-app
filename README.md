@@ -10,7 +10,7 @@ A comprehensive Node.js CLI application demonstrating Hyperswarm features implem
 - 🏓 **Ping/Pong**: Network latency testing between peers
 - 📊 **Connection Management**: Track and manage peer connections
 - 📝 **Comprehensive Logging**: Detailed logs with color-coded output
-- 🎛️ **Multiple Modes**: Server, client, and peer modes
+- 🎛️ **Peer-to-Peer Mode**: Direct peer connections with automatic discovery
 - ⚡ **Interactive CLI**: Rich command interface with help system
 
 ## 🚀 Quick Start
@@ -30,11 +30,6 @@ npm install
 # Start as a peer (generates random topic)
 npm run peer
 
-# Start as a server
-npm run server  
-
-# Start as a client (use topic from server)
-npm run client
 
 # Run automated demo
 npm run demo
@@ -48,7 +43,7 @@ npm run demo
 node main.js [options]
 
 Options:
-  -m, --mode <mode>     Operation mode: peer, server, client (default: peer)
+  -m, --mode <mode>     Operation mode: peer (default: peer)
   -t, --topic <topic>   Hex-encoded topic to join (generates random if not provided)
   -n, --name <name>     Peer name (generates random if not provided)  
   -p, --port <port>     Port number (for future use)
@@ -73,15 +68,15 @@ Once running, use these commands in the CLI:
 
 #### Example 1: Basic Peer Connection
 
-Terminal 1 (Server):
+Terminal 1 (First Peer):
 ```bash
-npm run server
+npm run peer
 # Note the topic from the output
 ```
 
-Terminal 2 (Client):
+Terminal 2 (Second Peer):
 ```bash
-node main.js --mode client --topic <TOPIC_FROM_SERVER>
+node main.js --topic <TOPIC_FROM_FIRST_PEER>
 ```
 
 #### Example 2: Named Peers with Custom Topic
@@ -114,8 +109,6 @@ After connecting peers, try these commands:
 |--------|-------------|
 | `npm start` | Start the application |
 | `npm run peer` | Start as peer mode |
-| `npm run server` | Start as server mode |
-| `npm run client` | Start as client mode |
 | `npm run demo` | Run automated demo with multiple peers |
 | `npm test` | Run test suite |
 | `npm run logs` | Monitor log files |
@@ -186,13 +179,13 @@ This runs a comprehensive test that:
 1. **Single Machine Multi-Terminal**:
    ```bash
    # Terminal 1
-   npm run server
+   npm run peer
    
    # Terminal 2  
    npm run peer
    
    # Terminal 3
-   npm run client
+   npm run peer
    ```
 
 2. **Network Testing**:

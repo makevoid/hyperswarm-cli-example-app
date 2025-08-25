@@ -3,7 +3,7 @@
     "allow": [
       "Bash(npm install)",
       "Bash(node:*)",
-      "Bash(timeout 5 npm run server)",
+      "Bash(timeout 5 npm run peer)",
       "Bash(timeout 15 npm test)",
       "Bash(npm run clean:*)",
       "Bash(npm run:*)",

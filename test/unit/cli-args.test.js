@@ -33,13 +33,13 @@ test('CLI Args - default values', async function (t) {
 test('CLI Args - mode parsing', async function (t) {
   t.plan(3)
   
-  const serverArgs = parseArgs(['--mode', 'server'])
-  const clientArgs = parseArgs(['-m', 'client'])
-  const peerArgs = parseArgs(['peer'])
+  const peerArgs1 = parseArgs(['--mode', 'peer'])
+  const peerArgs2 = parseArgs(['-m', 'peer'])
+  const peerArgs3 = parseArgs(['peer'])
   
-  t.is(serverArgs.mode, 'server', 'should parse server mode with --mode')
-  t.is(clientArgs.mode, 'client', 'should parse client mode with -m alias')
-  t.is(peerArgs._[0], 'peer', 'should capture positional mode argument')
+  t.is(peerArgs1.mode, 'peer', 'should parse peer mode with --mode')
+  t.is(peerArgs2.mode, 'peer', 'should parse peer mode with -m alias')
+  t.is(peerArgs3._[0], 'peer', 'should capture positional mode argument')
 })
 
 test('CLI Args - topic parsing', async function (t) {
@@ -80,14 +80,14 @@ test('CLI Args - complex argument combinations', async function (t) {
   t.plan(4)
   
   const complexArgs = parseArgs([
-    '--mode', 'server',
-    '--name', 'test-server',
+    '--mode', 'peer',
+    '--name', 'test-peer',
     '--topic', 'deadbeefcafebabe1234567890abcdef',
     '--port', '3000'
   ])
   
-  t.is(complexArgs.mode, 'server', 'should parse mode in complex args')
-  t.is(complexArgs.name, 'test-server', 'should parse name in complex args')
+  t.is(complexArgs.mode, 'peer', 'should parse mode in complex args')
+  t.is(complexArgs.name, 'test-peer', 'should parse name in complex args')
   t.is(complexArgs.topic, 'deadbeefcafebabe1234567890abcdef', 'should parse topic in complex args')
   t.is(complexArgs.port, '3000', 'should parse port in complex args')
 })
@@ -95,9 +95,9 @@ test('CLI Args - complex argument combinations', async function (t) {
 test('CLI Args - positional arguments', async function (t) {
   t.plan(3)
   
-  const positionalArgs = parseArgs(['server', 'extra', 'args'])
+  const positionalArgs = parseArgs(['peer', 'extra', 'args'])
   
-  t.is(positionalArgs._[0], 'server', 'should capture first positional arg')
+  t.is(positionalArgs._[0], 'peer', 'should capture first positional arg')
   t.is(positionalArgs._[1], 'extra', 'should capture second positional arg')
   t.is(positionalArgs._[2], 'args', 'should capture third positional arg')
 })
@@ -105,9 +105,9 @@ test('CLI Args - positional arguments', async function (t) {
 test('CLI Args - mixed positional and named args', async function (t) {
   t.plan(3)
   
-  const mixedArgs = parseArgs(['client', '--name', 'test-client', 'extra'])
+  const mixedArgs = parseArgs(['peer', '--name', 'test-peer', 'extra'])
   
-  t.is(mixedArgs._[0], 'client', 'should capture positional arg')
-  t.is(mixedArgs.name, 'test-client', 'should parse named arg')
+  t.is(mixedArgs._[0], 'peer', 'should capture positional arg')
+  t.is(mixedArgs.name, 'test-peer', 'should parse named arg')
   t.is(mixedArgs._[1], 'extra', 'should capture extra positional arg')
 })

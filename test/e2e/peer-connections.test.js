@@ -103,31 +103,31 @@ test('E2E - server and client connection', async function (t) {
 
   const topic = b4a.toString(crypto.randomBytes(32), 'hex')
   
-  const server = new TestProcess(['--mode', 'server', '--name', 'test-server', '--topic', topic])
-  const client = new TestProcess(['--mode', 'client', '--name', 'test-client', '--topic', topic])
+  const peer1 = new TestProcess(['--mode', 'peer', '--name', 'test-peer1', '--topic', topic])
+  const peer2 = new TestProcess(['--mode', 'peer', '--name', 'test-peer2', '--topic', topic])
   
   try {
-    // Start server first
-    await server.start()
-    t.ok(server.isRunning, 'server should start successfully')
+    // Start first peer
+    await peer1.start()
+    t.ok(peer1.isRunning, 'first peer should start successfully')
     
     await delay(2000)
     
-    // Start client
-    await client.start()
-    t.ok(client.isRunning, 'client should start successfully')
+    // Start second peer
+    await peer2.start()
+    t.ok(peer2.isRunning, 'second peer should start successfully')
     
     await delay(3000)
     
-    // Check server received connection
-    t.ok(server.hasOutput('New connection from peer'), 'server should receive connection')
-    t.ok(server.hasOutput('Welcome message from test-client'), 'server should receive welcome message')
+    // Check first peer received connection
+    t.ok(peer1.hasOutput('New connection from peer'), 'first peer should receive connection')
+    t.ok(peer1.hasOutput('Welcome message from test-peer2'), 'first peer should receive welcome message')
     
-    // Check client connected
-    t.ok(client.hasOutput('New connection from peer'), 'client should establish connection')
+    // Check second peer connected
+    t.ok(peer2.hasOutput('New connection from peer'), 'second peer should establish connection')
     
   } finally {
-    await Promise.all([client.stop(), server.stop()])
+    await Promise.all([peer2.stop(), peer1.stop()])
   }
 })
 
@@ -139,7 +139,7 @@ test('E2E - three peer mesh network', async function (t) {
   
   const peer1 = new TestProcess(['--mode', 'peer', '--name', 'peer-1', '--topic', topic])
   const peer2 = new TestProcess(['--mode', 'peer', '--name', 'peer-2', '--topic', topic])  
-  const peer3 = new TestProcess(['--mode', 'client', '--name', 'peer-3', '--topic', topic])
+  const peer3 = new TestProcess(['--mode', 'peer', '--name', 'peer-3', '--topic', topic])
   
   try {
     // Start peers sequentially 
@@ -172,7 +172,7 @@ test('E2E - error handling for invalid topic', async function (t) {
   t.plan(2)
   t.timeout(10000)
 
-  const peer = new TestProcess(['--mode', 'client', '--topic', 'invalid-topic'])
+  const peer = new TestProcess(['--mode', 'peer', '--topic', 'invalid-topic'])
   
   try {
     await peer.start()

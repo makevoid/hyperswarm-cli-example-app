@@ -6,7 +6,7 @@ This is a **comprehensive Node.js CLI application** demonstrating advanced peer-
 
 - **Real-time P2P communication** with automatic peer discovery
 - **Interactive CLI interface** with rich command system
-- **Multiple operation modes**: server, client, and peer
+- **Peer-to-peer operation mode**: direct peer connections
 - **Comprehensive logging system** with color-coded output
 - **Complete test suite** using Brittle test framework
 - **Message broadcasting** and connection management
@@ -100,8 +100,7 @@ npm run clean              # Clean log files and coverage reports
 npm run peer
 # or: node main.js --name alice
 
-# Start server mode
-npm run server  
+  
 
 # Connect to specific topic
 node main.js --name bob --topic <TOPIC_FROM_FIRST_PEER>

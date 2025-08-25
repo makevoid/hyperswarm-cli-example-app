@@ -149,14 +149,14 @@ class HyperswarmCLI {
 
     // Join the swarm
     const discovery = this.swarm.join(topicBuffer, {
-      client: this.mode !== "server",
-      server: this.mode !== "client",
+      client: true,
+      server: true,
     });
 
     this.logger.info("Joining swarm...", {
       mode: this.mode,
-      client: this.mode !== "server",
-      server: this.mode !== "client",
+      client: true,
+      server: true,
       topicHash: b4a.toString(topicBuffer, "hex").substring(0, 16) + "...",
     });
 
@@ -285,7 +285,7 @@ async function main() {
   }
 
   // Override mode based on positional argument for npm scripts
-  if (args._[0] && ["peer", "server", "client"].includes(args._[0])) {
+  if (args._[0] && ["peer"].includes(args._[0])) {
     args.mode = args._[0];
   }
 

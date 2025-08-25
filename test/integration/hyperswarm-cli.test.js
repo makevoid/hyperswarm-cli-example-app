@@ -7,12 +7,12 @@ test('HyperswarmCLI - constructor initialization', async function (t) {
   t.plan(7)
   
   const cli = new HyperswarmCLI({
-    mode: 'server',
+    mode: 'peer',
     name: 'test-cli',
     topic: 'deadbeef'
   })
   
-  t.is(cli.mode, 'server', 'should set mode correctly')
+  t.is(cli.mode, 'peer', 'should set mode correctly')
   t.is(cli.name, 'test-cli', 'should set name correctly')
   t.is(cli.topic, 'deadbeef', 'should set topic correctly')
   t.ok(cli.logger, 'should initialize logger')
