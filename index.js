@@ -55,8 +55,9 @@ class HyperswarmCLI {
       connectionManager: this.connectionManager,
     });
 
-    this.eventHandler.setupStdinEventHandlers({
-      userInputHandler: this.handleUserInput.bind(this),
+    this.eventHandler.setupStdinEventHandlers();
+    this.eventHandler.on("userInput", ({ input }) => {
+      this.handleUserInput({ input });
     });
   }
 
