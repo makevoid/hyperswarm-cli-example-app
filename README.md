@@ -261,4 +261,4 @@ For questions or issues:
 
 ---
 
-Made with ❤️ using [Hyperswarm](https://hyperswarm.org)
+Made with ❤️ using [Hyperswarm](https://hyperswarm.org) - Readme authored with Claude
