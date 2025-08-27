@@ -190,9 +190,10 @@ class HyperswarmCLI {
       for (let i = 0; i < 6; i++) {
         await delay(5000, { signal: controller.signal });
 
-        if (this.connectionManager.getConnectionsSize() === 0) {
-          this.logger.debug(`Still looking for peers... (${this.swarm.peers.size} peers in DHT)`);
-        } else {
+        const connections = this.connectionManager.getConnectionsSize();
+        this.logger.debug(`Peer discovery: ${this.swarm.peers.size} announcing topic, ${connections} connected`);
+        
+        if (connections > 0) {
           // Found peers, stop checking
           break;
         }

@@ -1,3 +1,4 @@
 *.log
 node_modules
 TEST_SUMMARY.md
+repomix-output.xml
